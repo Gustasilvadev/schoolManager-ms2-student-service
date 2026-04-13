@@ -1,0 +1,61 @@
+const { body, validationResult } = require('express-validator');
+const { HTTP_STATUS } = require('../utils/constants');
+
+const validate = (req, res, next) => {
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) {
+    return res.status(HTTP_STATUS.BAD_REQUEST).json({ errors: errors.array() });
+  }
+  next();
+};
+
+// Validação para criação de aluno
+const validateCreateStudent = [
+  body('student_name').notEmpty().withMessage('Nome é obrigatório').isLength({ max: 45 }),
+  body('student_cpf').optional().isLength({ max: 15 }),
+  body('student_email').isEmail().withMessage('E-mail inválido').isLength({ max: 45 }),
+  body('student_birthday').optional().isString(),
+  body('student_status').optional().isInt({ min: 0, max: 2 }),
+  validate
+];
+
+// Validação para atualização de aluno
+const validateUpdateStudent = [
+  body('student_name').optional().notEmpty().isLength({ max: 45 }),
+  body('student_cpf').isLength({ max: 15 }),
+  body('student_email').optional().isEmail().isLength({ max: 45 }),
+  body('student_birthday').optional().isString(),
+  body('student_status').optional().isInt({ min: 0, max: 2 }),
+  validate
+];
+
+// Validação para criação de responsável
+const validateCreateResponsible = [
+  body('responsible_name').notEmpty().withMessage('Nome é obrigatório').isLength({ max: 45 }),
+  body('responsible_email').isEmail().withMessage('E-mail inválido').isLength({ max: 45 }),
+  body('responsible_status').optional().isInt({ min: 0, max: 2 }),
+  validate
+];
+
+// Validação para atualização de responsável
+const validateUpdateResponsible = [
+  body('responsible_name').optional().notEmpty().isLength({ max: 45 }),
+  body('responsible_email').optional().isEmail().isLength({ max: 45 }),
+  body('responsible_status').optional().isInt({ min: 0, max: 2 }),
+  validate
+];
+
+// Validação para associar responsável a aluno
+const validateLinkResponsible = [
+  body('student_id').isInt().withMessage('ID do aluno é obrigatório'),
+  body('responsible_id').isInt().withMessage('ID do responsável é obrigatório'),
+  validate
+];
+
+module.exports = {
+  validateCreateStudent,
+  validateUpdateStudent,
+  validateCreateResponsible,
+  validateUpdateResponsible,
+  validateLinkResponsible
+};
