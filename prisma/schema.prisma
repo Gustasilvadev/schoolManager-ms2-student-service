@@ -10,7 +10,7 @@ datasource db {
 model responsibles {
   responsible_id       Int                    @id @default(autoincrement())
   reponsible_name      String                 @db.VarChar(45)
-  responsible_email    String                 @unique(map: "responsible_email_UNIQUE") @db.VarChar(45)
+  responsible_email    String                 @unique(map: "responsible_email") @db.VarChar(45)
   responsible_status   Int
   student_responsibles student_responsibles[]
 }
@@ -29,9 +29,9 @@ model student_responsibles {
 model students {
   student_id           Int                    @id @default(autoincrement())
   student_name         String                 @db.VarChar(45)
-  student_birthday     String                 @db.VarChar(45)
-  student_cpf          String                 @db.VarChar(45)
-  student_email        String                 @db.VarChar(45)
-  student_status       Int                    @unique(map: "student_status_UNIQUE")
+  student_birthday     DateTime               @db.Date
+  student_cpf          String                 @db.VarChar(15)
+  student_email        String                 @unique(map: "student_email") @db.VarChar(45)
+  student_status       Int
   student_responsibles student_responsibles[]
 }
