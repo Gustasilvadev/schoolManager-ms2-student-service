@@ -1,0 +1,336 @@
+openapi: 3.0.0
+info:
+  title: API do SchoolManager - StudentService
+  description: |
+    Microsserviço de gestão de alunos.
+    Todo aluno possui um ou mais responsáveis, que são gerenciados diretamente nos endpoints de aluno.
+  version: 2.0.0
+  contact:
+    name: Suporte SchoolManager
+    email: suporte@schoolmanager.com
+
+servers:
+  - url: http://localhost:3002
+    description: Servidor de Desenvolvimento (StudentService direto)
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  schemas:
+    Responsible:
+      type: object
+      properties:
+        responsible_id:
+          type: integer
+          example: 1
+        responsible_name:
+          type: string
+          maxLength: 45
+          example: "Maria da Silva"
+        responsible_email:
+          type: string
+          format: email
+          example: "maria@familia.com"
+        responsible_status:
+          type: integer
+          description: "1=ativo, 0=inativo, 2=excluído"
+          example: 1
+      required:
+        - responsible_name
+        - responsible_email
+        - responsible_status
+
+    Student:
+      type: object
+      properties:
+        student_id:
+          type: integer
+          example: 1
+        student_name:
+          type: string
+          maxLength: 45
+          example: "João Silva"
+        student_birthday:
+          type: string
+          format: date
+          example: "2010-05-20"
+        student_cpf:
+          type: string
+          maxLength: 15
+          example: "12345678900"
+        student_email:
+          type: string
+          format: email
+          example: "joao@escola.com"
+        student_status:
+          type: integer
+          description: "1=ativo, 0=inativo, 2=excluído"
+          example: 1
+        responsibles:
+          type: array
+          description: Lista de responsáveis associados ao aluno
+          items:
+            $ref: '#/components/schemas/Responsible'
+      required:
+        - student_name
+        - student_email
+        - student_status
+
+    StudentInput:
+      type: object
+      properties:
+        student_name:
+          type: string
+          example: "João Silva"
+        student_birthday:
+          type: string
+          format: date
+          example: "2010-05-20"
+        student_cpf:
+          type: string
+          example: "12345678900"
+        student_email:
+          type: string
+          format: email
+          example: "joao@escola.com"
+        student_status:
+          type: integer
+          default: 1
+        responsibles:
+          type: array
+          description: |
+            Lista de responsáveis. Cada item pode conter:
+            - `responsible_id` (para vincular responsável existente)
+            - ou `responsible_name` + `responsible_email` (para criar novo responsável)
+          items:
+            type: object
+            properties:
+              responsible_id:
+                type: integer
+              responsible_name:
+                type: string
+              responsible_email:
+                type: string
+              responsible_status:
+                type: integer
+                default: 1
+      required:
+        - student_name
+        - student_email
+
+    StudentListResponse:
+      type: object
+      properties:
+        students:
+          type: array
+          items:
+            $ref: '#/components/schemas/Student'
+        total:
+          type: integer
+        page:
+          type: integer
+        limit:
+          type: integer
+
+    Error:
+      type: object
+      properties:
+        error:
+          type: string
+
+paths:
+  /health:
+    get:
+      summary: Verifica saúde do serviço
+      tags:
+        - Health
+      responses:
+        '200':
+          description: Serviço operacional
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: "OK"
+                  service:
+                    type: string
+                    example: "student-service"
+
+  # ==================== ALUNOS ====================
+  /students/listStudents:
+    get:
+      summary: Lista alunos com paginação e filtros (apenas ADMIN)
+      tags:
+        - Students
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: page
+          in: query
+          schema:
+            type: integer
+            default: 1
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 10
+        - name: name
+          in: query
+          schema:
+            type: string
+          description: Filtro por nome (contém)
+        - name: cpf
+          in: query
+          schema:
+            type: string
+          description: Filtro por CPF (contém)
+        - name: email
+          in: query
+          schema:
+            type: string
+          description: Filtro por e-mail (contém)
+        - name: status
+          in: query
+          schema:
+            type: integer
+            enum: [0,1,2]
+          description: Status do aluno
+      responses:
+        '200':
+          description: Lista de alunos com seus responsáveis
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StudentListResponse'
+        '401':
+          description: Token não fornecido ou inválido
+        '403':
+          description: Acesso negado (requer papel ADMIN)
+
+  /students/createStudent:
+    post:
+      summary: Cria um novo aluno com seus responsáveis (apenas ADMIN)
+      tags:
+        - Students
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/StudentInput'
+      responses:
+        '201':
+          description: Aluno criado com sucesso
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Student'
+        '400':
+          description: E-mail ou CPF já cadastrado, ou dados inválidos
+        '401':
+          description: Não autenticado
+        '403':
+          description: Acesso negado
+
+  /students/listStudentsById/{id}:
+    get:
+      summary: Busca aluno por ID (apenas ADMIN)
+      tags:
+        - Students
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+          description: ID do aluno
+      responses:
+        '200':
+          description: Dados do aluno com seus responsáveis
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Student'
+        '404':
+          description: Aluno não encontrado
+        '401':
+          description: Não autenticado
+        '403':
+          description: Acesso negado
+
+  /students/updateStudent/{id}:
+    put:
+      summary: Atualiza dados do aluno e sua lista de responsáveis (apenas ADMIN)
+      tags:
+        - Students
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/StudentInput'
+      responses:
+        '200':
+          description: Aluno atualizado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Student'
+        '400':
+          description: E-mail ou CPF já existe, ou dados inválidos
+        '404':
+          description: Aluno não encontrado
+        '401':
+          description: Não autenticado
+        '403':
+          description: Acesso negado
+
+  /students/deleteStudent/{id}:
+    delete:
+      summary: Exclusão lógica do aluno (apenas ADMIN)
+      tags:
+        - Students
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Aluno desativado com sucesso
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+        '404':
+          description: Aluno não encontrado
+        '401':
+          description: Não autenticado
+        '403':
+          description: Acesso negado
