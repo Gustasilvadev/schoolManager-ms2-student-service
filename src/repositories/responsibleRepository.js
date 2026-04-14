@@ -7,8 +7,13 @@ const findByEmail = async (email) => {
 };
 
 const findById = async (id) => {
-  return await prisma.responsibles.findUnique({
-    where: { responsible_id: id }
+  return await prisma.students.findUnique({
+    where: { student_id: id },
+    include: {
+      student_responsibles: {
+        include: { responsibles: true }
+      }
+    }
   });
 };
 

@@ -9,15 +9,6 @@ const assign = async (studentId, responsibleId) => {
   });
 };
 
-const remove = async (studentId, responsibleId) => {
-  return await prisma.student_responsibles.deleteMany({
-    where: {
-      student_id: studentId,
-      responsible_id: responsibleId
-    }
-  });
-};
-
 const findByStudent = async (studentId) => {
   return await prisma.student_responsibles.findMany({
     where: { student_id: studentId },
@@ -32,9 +23,15 @@ const findByResponsible = async (responsibleId) => {
   });
 };
 
+const removeAllByStudent = async (studentId) => {
+  return await prisma.student_responsibles.deleteMany({
+    where: { student_id: studentId }
+  });
+};
+
 module.exports = {
   assign,
-  remove,
   findByStudent,
-  findByResponsible
+  findByResponsible,
+  removeAllByStudent
 };

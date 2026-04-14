@@ -17,7 +17,13 @@ const findByCpf = async (cpf) => {
 const findById = async (id) => {
   return await prisma.students.findUnique({
     where: { student_id: id },
-    include: { student_responsibles: { include: { responsible: true } } }
+    include: {
+      student_responsibles: {
+        include: {
+          responsibles: true
+        }
+      }
+    }
   });
 };
 
