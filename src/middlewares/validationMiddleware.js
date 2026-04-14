@@ -29,33 +29,7 @@ const validateUpdateStudent = [
   validate
 ];
 
-// Validação para criação de responsável
-const validateCreateResponsible = [
-  body('responsible_name').notEmpty().withMessage('Nome é obrigatório').isLength({ max: 45 }),
-  body('responsible_email').isEmail().withMessage('E-mail inválido').isLength({ max: 45 }),
-  body('responsible_status').optional().isInt({ min: 0, max: 2 }),
-  validate
-];
-
-// Validação para atualização de responsável
-const validateUpdateResponsible = [
-  body('responsible_name').optional().notEmpty().isLength({ max: 45 }),
-  body('responsible_email').optional().isEmail().isLength({ max: 45 }),
-  body('responsible_status').optional().isInt({ min: 0, max: 2 }),
-  validate
-];
-
-// Validação para associar responsável a aluno
-const validateLinkResponsible = [
-  body('student_id').isInt().withMessage('ID do aluno é obrigatório'),
-  body('responsible_id').isInt().withMessage('ID do responsável é obrigatório'),
-  validate
-];
-
 module.exports = {
   validateCreateStudent,
-  validateUpdateStudent,
-  validateCreateResponsible,
-  validateUpdateResponsible,
-  validateLinkResponsible
+  validateUpdateStudent
 };
