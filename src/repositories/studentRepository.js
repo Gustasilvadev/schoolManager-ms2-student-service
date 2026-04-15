@@ -32,7 +32,14 @@ const findAll = async (skip, take, where = {}) => {
     where,
     skip,
     take,
-    orderBy: { student_id: 'asc' }
+    orderBy: { student_id: 'asc' },
+    include: {
+      student_responsibles: {
+        include: {
+          responsibles: true
+        }
+      }
+    }
   });
 };
 
@@ -47,14 +54,28 @@ const create = async (data) => {
 const update = async (id, data) => {
   return await prisma.students.update({
     where: { student_id: id },
-    data
+    data,
+    include: {
+      student_responsibles: {
+        include: {
+          responsibles: true
+        }
+      }
+    }
   });
 };
 
 const softDelete = async (id) => {
   return await prisma.students.update({
     where: { student_id: id },
-    data: { student_status: STUDENT_STATUS.DELETED }
+    data: { student_status: STUDENT_STATUS.DELETED },
+    include: {
+      student_responsibles: {
+        include: {
+          responsibles: true
+        }
+      }
+    }
   });
 };
 

@@ -1,5 +1,6 @@
 const studentService = require('../services/studentService');
 const { HTTP_STATUS, MESSAGES } = require('../utils/constants');
+const { formatStudentResponse, formatStudentsArray } = require('../utils/formatterResponse');
 
 /**
  * Cria um novo aluno (apenas ADMIN)
@@ -11,10 +12,11 @@ const createStudent = async (req, res, next) => {
       student_birthday: req.body.student_birthday,
       student_cpf: req.body.student_cpf,
       student_email: req.body.student_email,
-      student_status: req.body.student_status
+      student_status: req.body.student_status,
+      responsibles: req.body.responsibles
     };
     const newStudent = await studentService.createStudent(studentData);
-    return res.status(HTTP_STATUS.CREATED).json(newStudent);
+    return res.status(HTTP_STATUS.CREATED).json(formatStudentResponse(newStudent));
   } catch (error) {
     if (error.message === MESSAGES.EMAIL_ALREADY_EXISTS || error.message === MESSAGES.CPF_ALREADY_EXISTS) {
       return res.status(HTTP_STATUS.BAD_REQUEST).json({ error: error.message });
@@ -36,7 +38,12 @@ const getAllStudents = async (req, res, next) => {
     if (status !== undefined) filters.status = parseInt(status);
 
     const result = await studentService.getAllStudents(filters, parseInt(page), parseInt(limit));
-    return res.status(HTTP_STATUS.OK).json(result);
+    return res.status(HTTP_STATUS.OK).json({
+      students: formatStudentsArray(result.students),
+      total: result.total,
+      page: result.page,
+      limit: result.limit
+    });
   } catch (error) {
     next(error);
   }
@@ -49,7 +56,7 @@ const getStudentById = async (req, res, next) => {
   try {
     const { id } = req.params;
     const student = await studentService.getStudentById(parseInt(id));
-    return res.status(HTTP_STATUS.OK).json(student);
+    return res.status(HTTP_STATUS.OK).json(formatStudentResponse(student));
   } catch (error) {
     if (error.message === MESSAGES.STUDENT_NOT_FOUND) {
       return res.status(HTTP_STATUS.NOT_FOUND).json({ error: error.message });
@@ -72,7 +79,7 @@ const updateStudent = async (req, res, next) => {
     if (req.body.student_status !== undefined) updateData.student_status = req.body.student_status;
 
     const updated = await studentService.updateStudent(parseInt(id), updateData);
-    return res.status(HTTP_STATUS.OK).json(updated);
+    return res.status(HTTP_STATUS.OK).json(formatStudentResponse(updated));
   } catch (error) {
     if (error.message === MESSAGES.STUDENT_NOT_FOUND) {
       return res.status(HTTP_STATUS.NOT_FOUND).json({ error: error.message });
@@ -90,8 +97,8 @@ const updateStudent = async (req, res, next) => {
 const deleteStudent = async (req, res, next) => {
   try {
     const { id } = req.params;
-    await studentService.deleteStudent(parseInt(id));
-    return res.status(HTTP_STATUS.OK).json({ message: 'Aluno desativado com sucesso' });
+    const deleted = await studentService.deleteStudent(parseInt(id));
+    return res.status(HTTP_STATUS.OK).json(formatStudentResponse(deleted));
   } catch (error) {
     if (error.message === MESSAGES.STUDENT_NOT_FOUND) {
       return res.status(HTTP_STATUS.NOT_FOUND).json({ error: error.message });

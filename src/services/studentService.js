@@ -177,8 +177,7 @@ const updateStudent = async (id, updateData) => {
 const deleteStudent = async (id) => {
   const student = await studentRepo.findById(id);
   if (!student) throw new Error(MESSAGES.STUDENT_NOT_FOUND);
-  await studentRepo.softDelete(id);
-  return true;
+  return await studentRepo.softDelete(id);
 };
 
 module.exports = {
