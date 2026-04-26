@@ -1,4 +1,8 @@
 module.exports = {
+  ROLES: {
+    ADMIN: 'ADMIN',
+    TEACHER: 'TEACHER'
+  },
   STUDENT_STATUS: {
     ACTIVE: 1,
     INACTIVE: 0,

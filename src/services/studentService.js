@@ -3,7 +3,6 @@ const responsibleRepo = require('../repositories/responsibleRepository');
 const studentResponsibleRepo = require('../repositories/studentResponsibleRepository');
 const { MESSAGES, STUDENT_STATUS, RESPONSIBLE_STATUS } = require('../utils/constants');
 const { validateUniqueStudentEmail, validateUniqueStudentCpf, validateUniqueResponsibleEmail } = require('../utils/validators');
-const prisma = require('../config/prisma');
 
 /**
  * Cria um novo aluno com seus responsáveis.
@@ -11,78 +10,24 @@ const prisma = require('../config/prisma');
 const createStudent = async (studentData) => {
   const { responsibles = [], ...studentBasicData } = studentData;
 
-  // Validações
   await validateUniqueStudentEmail(studentBasicData.student_email);
   if (studentBasicData.student_cpf) {
     await validateUniqueStudentCpf(studentBasicData.student_cpf);
   }
 
-  // Converte data
   if (studentBasicData.student_birthday) {
     studentBasicData.student_birthday = new Date(studentBasicData.student_birthday);
   }
 
-  const studentStatus = studentBasicData.student_status ?? STUDENT_STATUS.ACTIVE;
+  const newStudentData = {
+    student_name: studentBasicData.student_name,
+    student_birthday: studentBasicData.student_birthday,
+    student_cpf: studentBasicData.student_cpf || null,
+    student_email: studentBasicData.student_email,
+    student_status: studentBasicData.student_status ?? STUDENT_STATUS.ACTIVE
+  };
 
-  // Transação
-  return await prisma.$transaction(async (tx) => {
-    // 1. Cria o aluno
-    const newStudent = await tx.students.create({
-      data: {
-        student_name: studentBasicData.student_name,
-        student_birthday: studentBasicData.student_birthday,
-        student_cpf: studentBasicData.student_cpf || null,
-        student_email: studentBasicData.student_email,
-        student_status: studentStatus
-      }
-    });
-
-    // 2. Processa responsáveis
-    for (const resp of responsibles) {
-      let responsibleId = resp.responsible_id;
-
-      if (!responsibleId && resp.responsible_name && resp.responsible_email) {
-        // Tenta encontrar responsável pelo email
-        let existing = await tx.responsibles.findUnique({
-          where: { responsible_email: resp.responsible_email }
-        });
-
-        if (!existing) {
-          // Cria novo responsável
-          existing = await tx.responsibles.create({
-            data: {
-              responsible_name: resp.responsible_name,
-              responsible_email: resp.responsible_email,
-              responsible_status: resp.responsible_status ?? RESPONSIBLE_STATUS.ACTIVE
-            }
-          });
-        }
-        responsibleId = existing.responsible_id;
-      }
-
-      if (responsibleId) {
-        // Cria associação
-        await tx.student_responsibles.create({
-          data: {
-            student_id: newStudent.student_id,
-            responsible_id: responsibleId
-          }
-        });
-      } else {
-        throw new Error('Responsável inválido: necessário fornecer responsible_id ou nome+email');
-      }
-    }
-
-    // 3. Retorna o aluno com os responsáveis incluídos
-    return await tx.students.findUnique({
-      where: { student_id: newStudent.student_id },
-      include: {
-        student_responsibles: {
-          include: { responsibles: true }
-        }
-      }
-    });
-  });
+  return await studentRepo.create(newStudentData, responsibles);
 };
 
 /**

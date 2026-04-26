@@ -1,6 +1,14 @@
 const prisma = require('../config/prisma');
 
+const findOne = async (studentId, responsibleId) => {
+  return await prisma.student_responsibles.findFirst({
+    where: { student_id: studentId, responsible_id: responsibleId }
+  });
+};
+
 const assign = async (studentId, responsibleId) => {
+  const existing = await findOne(studentId, responsibleId);
+  if (existing) return existing;
   return await prisma.student_responsibles.create({
     data: {
       student_id: studentId,

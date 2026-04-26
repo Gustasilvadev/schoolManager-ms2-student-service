@@ -107,60 +107,10 @@ const deleteStudent = async (req, res, next) => {
   }
 };
 
-/**
- * Associa um responsável a um aluno (apenas ADMIN)
- */
-const associateResponsible = async (req, res, next) => {
-  try {
-    const studentId = parseInt(req.params.id);
-    const { responsible_id } = req.body;
-    const association = await studentService.associateResponsible(studentId, responsible_id);
-    return res.status(HTTP_STATUS.CREATED).json(association);
-  } catch (error) {
-    if (error.message === MESSAGES.STUDENT_NOT_FOUND || error.message === MESSAGES.RESPONSIBLE_NOT_FOUND) {
-      return res.status(HTTP_STATUS.NOT_FOUND).json({ error: error.message });
-    }
-    next(error);
-  }
-};
-
-/**
- * Remove associação entre aluno e responsável (apenas ADMIN)
- */
-const removeResponsibleAssociation = async (req, res, next) => {
-  try {
-    const studentId = parseInt(req.params.id);
-    const responsibleId = parseInt(req.params.responsibleId);
-    await studentService.removeResponsibleAssociation(studentId, responsibleId);
-    return res.status(HTTP_STATUS.OK).json({ message: 'Associação removida com sucesso' });
-  } catch (error) {
-    next(error);
-  }
-};
-
-/**
- * Lista todos os responsáveis de um aluno (apenas ADMIN)
- */
-const getResponsiblesByStudent = async (req, res, next) => {
-  try {
-    const studentId = parseInt(req.params.id);
-    const responsibles = await studentService.getResponsiblesByStudent(studentId);
-    return res.status(HTTP_STATUS.OK).json(responsibles);
-  } catch (error) {
-    if (error.message === MESSAGES.STUDENT_NOT_FOUND) {
-      return res.status(HTTP_STATUS.NOT_FOUND).json({ error: error.message });
-    }
-    next(error);
-  }
-};
-
 module.exports = {
   createStudent,
   getAllStudents,
   getStudentById,
   updateStudent,
-  deleteStudent,
-  associateResponsible,
-  removeResponsibleAssociation,
-  getResponsiblesByStudent
+  deleteStudent
 };
