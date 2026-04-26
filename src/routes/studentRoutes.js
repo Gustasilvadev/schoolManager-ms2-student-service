@@ -12,9 +12,9 @@ router.use(authMiddleware);
 router.use(roleMiddleware(['ADMIN']));
 
 router.get('/listStudents', studentController.getAllStudents);
-router.get('/listStudentsById/:id', studentController.getStudentById);
+router.get('/listStudentById/:id', studentController.getStudentById);
 router.post('/createStudent', validateCreateStudent, studentController.createStudent);
-router.put('/updateStudent/:id', validateUpdateStudent, studentController.updateStudent);
-router.delete('/deleteStudent/:id', studentController.deleteStudent);
+router.put('/updateStudentById/:id', validateUpdateStudent, studentController.updateStudent);
+router.delete('/deleteStudentById/:id', studentController.deleteStudent);
 
 module.exports = router;

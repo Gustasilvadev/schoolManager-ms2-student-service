@@ -10,7 +10,7 @@ info:
     email: suporte@schoolmanager.com
 
 servers:
-  - url: http://localhost:3002
+  - url: http://localhost:3002/api
     description: Servidor de Desenvolvimento (StudentService direto)
 
 components:
@@ -242,7 +242,7 @@ paths:
         '403':
           description: Acesso negado
 
-  /students/listStudentsById/{id}:
+  /students/listStudentById/{id}:
     get:
       summary: Busca aluno por ID (apenas ADMIN)
       tags:
@@ -270,7 +270,7 @@ paths:
         '403':
           description: Acesso negado
 
-  /students/updateStudent/{id}:
+  /students/updateStudentById/{id}:
     put:
       summary: Atualiza dados do aluno e sua lista de responsáveis (apenas ADMIN)
       tags:
@@ -305,7 +305,7 @@ paths:
         '403':
           description: Acesso negado
 
-  /students/deleteStudent/{id}:
+  /students/deleteStudentById/{id}:
     delete:
       summary: Exclusão lógica do aluno (apenas ADMIN)
       tags:
