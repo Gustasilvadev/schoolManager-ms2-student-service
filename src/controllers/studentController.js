@@ -3,7 +3,7 @@ const { HTTP_STATUS, MESSAGES } = require('../utils/constants');
 const { formatStudentResponse, formatStudentsArray } = require('../utils/formatterResponse');
 
 /**
- * Cria um novo aluno (apenas ADMIN)
+ * Cria um novo aluno
  */
 const createStudent = async (req, res, next) => {
   try {
@@ -26,7 +26,7 @@ const createStudent = async (req, res, next) => {
 };
 
 /**
- * Lista alunos com paginação e filtros (apenas ADMIN)
+ * Lista alunos com paginação e filtros
  */
 const getAllStudents = async (req, res, next) => {
   try {
@@ -50,7 +50,7 @@ const getAllStudents = async (req, res, next) => {
 };
 
 /**
- * Busca aluno por ID (apenas ADMIN)
+ * Busca aluno por ID
  */
 const getStudentById = async (req, res, next) => {
   try {
@@ -66,7 +66,7 @@ const getStudentById = async (req, res, next) => {
 };
 
 /**
- * Atualiza dados do aluno (apenas ADMIN)
+ * Atualiza dados do aluno
  */
 const updateStudent = async (req, res, next) => {
   try {
@@ -92,7 +92,7 @@ const updateStudent = async (req, res, next) => {
 };
 
 /**
- * Exclusão lógica do aluno (apenas ADMIN)
+ * Exclusão lógica do aluno
  */
 const deleteStudent = async (req, res, next) => {
   try {

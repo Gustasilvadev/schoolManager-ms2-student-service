@@ -9,7 +9,6 @@ const validate = (req, res, next) => {
   next();
 };
 
-// Validação para criação de aluno
 const validateCreateStudent = [
   body('student_name').notEmpty().withMessage('Nome é obrigatório').isLength({ max: 45 }),
   body('student_cpf').optional().isLength({ max: 15 }),
@@ -19,7 +18,6 @@ const validateCreateStudent = [
   validate
 ];
 
-// Validação para atualização de aluno
 const validateUpdateStudent = [
   body('student_name').optional().notEmpty().isLength({ max: 45 }),
   body('student_cpf').isLength({ max: 15 }),
