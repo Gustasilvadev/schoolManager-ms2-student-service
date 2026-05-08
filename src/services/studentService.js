@@ -1,3 +1,4 @@
+const prisma = require('../config/prisma');
 const studentRepo = require('../repositories/studentRepository');
 const responsibleRepo = require('../repositories/responsibleRepository');
 const studentResponsibleRepo = require('../repositories/studentResponsibleRepository');
@@ -65,8 +66,7 @@ const getStudentById = async (id) => {
 };
 
 /**
- * Atualiza dados de um aluno e sua lista de responsáveis.
- * Se a lista de responsáveis for fornecida, substitui completamente a existente.
+ * Atualiza dados de um aluno e sua lista de responsáveis (se fornecida, substitui a existente)
  */
 const updateStudent = async (id, updateData) => {
   const existing = await studentRepo.findById(id);
@@ -84,36 +84,39 @@ const updateStudent = async (id, updateData) => {
     if (studentUpdateData.student_birthday) {
       studentUpdateData.student_birthday = new Date(studentUpdateData.student_birthday);
     }
-    await studentRepo.update(id, studentUpdateData);
   }
 
+  return await prisma.$transaction(async (tx) => {
+    if (Object.keys(studentUpdateData).length > 0) {
+      await studentRepo.update(id, studentUpdateData, tx);
+    }
 
-  if (responsibles !== undefined) {
-    await studentResponsibleRepo.removeAllByStudent(id);
+    if (responsibles !== undefined) {
+      await studentResponsibleRepo.removeAllByStudent(id, tx);
 
-    for (const resp of responsibles) {
-      let responsibleId = resp.responsible_id;
-      if (!responsibleId && resp.responsible_name && resp.responsible_email) {
-        let existingResp = await responsibleRepo.findByEmail(resp.responsible_email);
-        if (!existingResp) {
-          await validateUniqueResponsibleEmail(resp.responsible_email);
-          existingResp = await responsibleRepo.create({
-            responsible_name: resp.responsible_name,
-            responsible_email: resp.responsible_email,
-            responsible_status: resp.responsible_status ?? RESPONSIBLE_STATUS.ACTIVE
-          });
+      for (const resp of responsibles) {
+        let responsibleId = resp.responsible_id;
+        if (!responsibleId && resp.responsible_name && resp.responsible_email) {
+          let existingResp = await responsibleRepo.findByEmail(resp.responsible_email, tx);
+          if (!existingResp) {
+            existingResp = await responsibleRepo.create({
+              responsible_name: resp.responsible_name,
+              responsible_email: resp.responsible_email,
+              responsible_status: resp.responsible_status ?? RESPONSIBLE_STATUS.ACTIVE
+            }, tx);
+          }
+          responsibleId = existingResp.responsible_id;
         }
-        responsibleId = existingResp.responsible_id;
-      }
-      if (responsibleId) {
-        await studentResponsibleRepo.assign(id, responsibleId);
-      } else {
-        throw new Error('Responsável inválido na atualização');
+        if (responsibleId) {
+          await studentResponsibleRepo.assign(id, responsibleId, tx);
+        } else {
+          throw new Error('Responsável inválido na atualização');
+        }
       }
     }
-  }
 
-  return await studentRepo.findById(id);
+    return await studentRepo.findById(id, tx);
+  });
 };
 
 /**

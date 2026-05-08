@@ -1,7 +1,7 @@
 const prisma = require('../config/prisma');
 
-const findByEmail = async (email) => {
-  return await prisma.responsibles.findUnique({
+const findByEmail = async (email, tx = prisma) => {
+  return await tx.responsibles.findUnique({
     where: { responsible_email: email }
   });
 };
@@ -25,8 +25,8 @@ const count = async (where = {}) => {
   return await prisma.responsibles.count({ where });
 };
 
-const create = async (data) => {
-  return await prisma.responsibles.create({ data });
+const create = async (data, tx = prisma) => {
+  return await tx.responsibles.create({ data });
 };
 
 const update = async (id, data) => {

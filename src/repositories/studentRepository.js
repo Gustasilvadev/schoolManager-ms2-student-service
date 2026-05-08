@@ -14,8 +14,8 @@ const findByCpf = async (cpf) => {
   });
 };
 
-const findById = async (id) => {
-  return await prisma.students.findUnique({
+const findById = async (id, tx = prisma) => {
+  return await tx.students.findUnique({
     where: { student_id: id },
     include: {
       student_responsibles: {
@@ -94,8 +94,8 @@ const create = async (studentData, responsibles = []) => {
   });
 };
 
-const update = async (id, data) => {
-  return await prisma.students.update({
+const update = async (id, data, tx = prisma) => {
+  return await tx.students.update({
     where: { student_id: id },
     data,
     include: {
