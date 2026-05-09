@@ -77,6 +77,7 @@ const updateStudent = async (req, res, next) => {
     if (req.body.student_cpf !== undefined) updateData.student_cpf = req.body.student_cpf;
     if (req.body.student_email !== undefined) updateData.student_email = req.body.student_email;
     if (req.body.student_status !== undefined) updateData.student_status = req.body.student_status;
+    if (req.body.responsibles !== undefined) updateData.responsibles = req.body.responsibles;
 
     const updated = await studentService.updateStudent(parseInt(id), updateData);
     return res.status(HTTP_STATUS.OK).json(formatStudentResponse(updated));
