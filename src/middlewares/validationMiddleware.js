@@ -11,16 +11,16 @@ const validate = (req, res, next) => {
 
 const validateCreateStudent = [
   body('student_name').notEmpty().withMessage('Nome é obrigatório').isLength({ max: 45 }),
-  body('student_cpf').optional().isLength({ max: 15 }),
+  body('student_cpf').notEmpty().withMessage('CPF é obrigatório').isLength({ max: 15 }),
   body('student_email').isEmail().withMessage('E-mail inválido').isLength({ max: 45 }),
-  body('student_birthday').optional().isString(),
+  body('student_birthday').notEmpty().withMessage('Data de nascimento é obrigatória').isString(),
   body('student_status').optional().isInt({ min: 0, max: 2 }),
   validate
 ];
 
 const validateUpdateStudent = [
   body('student_name').optional().notEmpty().isLength({ max: 45 }),
-  body('student_cpf').isLength({ max: 15 }),
+  body('student_cpf').optional().notEmpty().isLength({ max: 15 }),
   body('student_email').optional().isEmail().isLength({ max: 45 }),
   body('student_birthday').optional().isString(),
   body('student_status').optional().isInt({ min: 0, max: 2 }),

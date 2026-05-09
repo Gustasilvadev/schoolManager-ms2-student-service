@@ -9,12 +9,14 @@ const {
 } = require('../middlewares/validationMiddleware');
 
 router.use(authMiddleware);
-router.use(roleMiddleware(['ADMIN']));
 
-router.get('/listStudents', studentController.getAllStudents);
-router.get('/listStudentById/:id', studentController.getStudentById);
-router.post('/createStudent', validateCreateStudent, studentController.createStudent);
-router.put('/updateStudentById/:id', validateUpdateStudent, studentController.updateStudent);
-router.delete('/deleteStudentById/:id', studentController.deleteStudent);
+const ADMIN_ONLY = roleMiddleware(['ADMIN']);
+const ADMIN_OR_TEACHER = roleMiddleware(['ADMIN', 'TEACHER']);
+
+router.get('/listStudents', ADMIN_ONLY, studentController.getAllStudents);
+router.get('/listStudentById/:id', ADMIN_OR_TEACHER, studentController.getStudentById);
+router.post('/createStudent', ADMIN_ONLY, validateCreateStudent, studentController.createStudent);
+router.put('/updateStudentById/:id', ADMIN_ONLY, validateUpdateStudent, studentController.updateStudent);
+router.delete('/deleteStudentById/:id', ADMIN_ONLY, studentController.deleteStudent);
 
 module.exports = router;
