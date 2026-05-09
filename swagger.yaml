@@ -105,14 +105,13 @@ components:
         responsibles:
           type: array
           description: |
-            Lista de responsáveis. Cada item pode conter:
-            - `responsible_id` (para vincular responsável existente)
-            - ou `responsible_name` + `responsible_email` (para criar novo responsável)
+            Lista de responsáveis. Cada item deve conter
+            `responsible_name` + `responsible_email`. Se um responsável com o
+            mesmo `responsible_email` já existir, ele será reaproveitado;
+            caso contrário, um novo responsável será criado.
           items:
             type: object
             properties:
-              responsible_id:
-                type: integer
               responsible_name:
                 type: string
               responsible_email:
@@ -120,8 +119,13 @@ components:
               responsible_status:
                 type: integer
                 default: 1
+            required:
+              - responsible_name
+              - responsible_email
       required:
         - student_name
+        - student_birthday
+        - student_cpf
         - student_email
 
     StudentListResponse:
@@ -179,32 +183,34 @@ paths:
           schema:
             type: integer
             default: 1
+          description: Número da página
         - name: limit
           in: query
           schema:
             type: integer
             default: 10
-        - name: name
-          in: query
-          schema:
-            type: string
-          description: Filtro por nome (contém)
-        - name: cpf
-          in: query
-          schema:
-            type: string
-          description: Filtro por CPF (contém)
-        - name: email
-          in: query
-          schema:
-            type: string
-          description: Filtro por e-mail (contém)
+          description: Itens por página
         - name: status
           in: query
           schema:
             type: integer
-            enum: [0,1,2]
-          description: Status do aluno
+            enum: [0, 1, 2]
+          description: Filtro por status do aluno
+        - name: email
+          in: query
+          schema:
+            type: string
+          description: Filtro parcial por e-mail
+        - name: name
+          in: query
+          schema:
+            type: string
+          description: Filtro parcial por nome
+        - name: cpf
+          in: query
+          schema:
+            type: string
+          description: Filtro parcial por CPF
       responses:
         '200':
           description: Lista de alunos com seus responsáveis
@@ -213,7 +219,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/StudentListResponse'
         '401':
-          description: Token não fornecido ou inválido
+          description: Token inválido ou não fornecido
         '403':
           description: Acesso negado (requer papel ADMIN)
 
