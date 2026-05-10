@@ -32,6 +32,9 @@ module.exports = {
     CPF_ALREADY_EXISTS: 'CPF já cadastrado',
     INVALID_CPF: 'CPF inválido',
     BIRTHDAY_INVALID: 'Data de nascimento inválida',
-    REQUIRED_FIELD: 'Campo obrigatório não preenchido'
+    REQUIRED_FIELD: 'Campo obrigatório não preenchido',
+    CANNOT_EDIT_DELETED: 'Não é possível editar um aluno excluído',
+    NOT_DELETED_CANNOT_RESTORE: 'O registro não está excluído',
+    STUDENT_RESTORED: 'Aluno restaurado com sucesso'
   }
 };

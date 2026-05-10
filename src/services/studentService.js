@@ -2,7 +2,7 @@ const prisma = require('../config/prisma');
 const studentRepo = require('../repositories/studentRepository');
 const responsibleRepo = require('../repositories/responsibleRepository');
 const studentResponsibleRepo = require('../repositories/studentResponsibleRepository');
-const { MESSAGES, STUDENT_STATUS, RESPONSIBLE_STATUS } = require('../utils/constants');
+const { MESSAGES, STUDENT_STATUS, RESPONSIBLE_STATUS, ROLES } = require('../utils/constants');
 const { validateUniqueStudentEmail, validateUniqueStudentCpf, validateUniqueResponsibleEmail } = require('../utils/validators');
 
 /**
@@ -34,7 +34,7 @@ const createStudent = async (studentData) => {
 /**
  * Lista alunos com paginação e filtros.
  */
-const getAllStudents = async (filters = {}, page = 1, limit = 10) => {
+const getAllStudents = async (filters = {}, page = 1, limit = 10, userRole = ROLES.ADMIN) => {
   const skip = (page - 1) * limit;
   const where = {};
 
@@ -47,8 +47,12 @@ const getAllStudents = async (filters = {}, page = 1, limit = 10) => {
   if (filters.email && filters.email.trim() !== '') {
     where.student_email = { contains: filters.email };
   }
-  if (filters.status !== undefined && filters.status !== '') {
+  if (userRole === ROLES.TEACHER) {
+    where.student_status = STUDENT_STATUS.ACTIVE;
+  } else if (filters.status !== undefined && filters.status !== '') {
     where.student_status = parseInt(filters.status);
+  } else if (filters.includeDeleted !== true) {
+    where.student_status = { in: [STUDENT_STATUS.ACTIVE, STUDENT_STATUS.INACTIVE] };
   }
 
   const students = await studentRepo.findAll(skip, limit, where);
@@ -71,6 +75,9 @@ const getStudentById = async (id) => {
 const updateStudent = async (id, updateData) => {
   const existing = await studentRepo.findById(id);
   if (!existing) throw new Error(MESSAGES.STUDENT_NOT_FOUND);
+  if (existing.student_status === STUDENT_STATUS.DELETED) {
+    throw new Error(MESSAGES.CANNOT_EDIT_DELETED);
+  }
 
   const { responsibles, ...studentUpdateData } = updateData;
 
@@ -128,10 +135,20 @@ const deleteStudent = async (id) => {
   return await studentRepo.softDelete(id);
 };
 
+const restoreStudent = async (id) => {
+  const student = await studentRepo.findById(id);
+  if (!student) throw new Error(MESSAGES.STUDENT_NOT_FOUND);
+  if (student.student_status !== STUDENT_STATUS.DELETED) {
+    throw new Error(MESSAGES.NOT_DELETED_CANNOT_RESTORE);
+  }
+  return await studentRepo.restore(id);
+};
+
 module.exports = {
   createStudent,
   getAllStudents,
   getStudentById,
   updateStudent,
-  deleteStudent
+  deleteStudent,
+  restoreStudent
 };

@@ -30,14 +30,15 @@ const createStudent = async (req, res, next) => {
  */
 const getAllStudents = async (req, res, next) => {
   try {
-    const { page = 1, limit = 10, name, cpf, email, status } = req.query;
+    const { page = 1, limit = 10, name, cpf, email, status, includeDeleted } = req.query;
     const filters = {};
     if (name) filters.name = name;
     if (cpf) filters.cpf = cpf;
     if (email) filters.email = email;
     if (status !== undefined) filters.status = parseInt(status);
+    if (includeDeleted === 'true') filters.includeDeleted = true;
 
-    const result = await studentService.getAllStudents(filters, parseInt(page), parseInt(limit));
+    const result = await studentService.getAllStudents(filters, parseInt(page), parseInt(limit), req.user.role);
     return res.status(HTTP_STATUS.OK).json({
       students: formatStudentsArray(result.students),
       total: result.total,
@@ -88,6 +89,28 @@ const updateStudent = async (req, res, next) => {
     if (error.message === MESSAGES.EMAIL_ALREADY_EXISTS || error.message === MESSAGES.CPF_ALREADY_EXISTS) {
       return res.status(HTTP_STATUS.BAD_REQUEST).json({ error: error.message });
     }
+    if (error.message === MESSAGES.CANNOT_EDIT_DELETED) {
+      return res.status(HTTP_STATUS.BAD_REQUEST).json({ error: error.message });
+    }
+    next(error);
+  }
+};
+
+const restoreStudent = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    const restored = await studentService.restoreStudent(parseInt(id));
+    return res.status(HTTP_STATUS.OK).json({
+      message: MESSAGES.STUDENT_RESTORED,
+      student: formatStudentResponse(restored)
+    });
+  } catch (error) {
+    if (error.message === MESSAGES.STUDENT_NOT_FOUND) {
+      return res.status(HTTP_STATUS.NOT_FOUND).json({ error: error.message });
+    }
+    if (error.message === MESSAGES.NOT_DELETED_CANNOT_RESTORE) {
+      return res.status(HTTP_STATUS.BAD_REQUEST).json({ error: error.message });
+    }
     next(error);
   }
 };
@@ -113,5 +136,6 @@ module.exports = {
   getAllStudents,
   getStudentById,
   updateStudent,
-  deleteStudent
+  deleteStudent,
+  restoreStudent
 };

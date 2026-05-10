@@ -122,6 +122,20 @@ const softDelete = async (id) => {
   });
 };
 
+const restore = async (id) => {
+  return await prisma.students.update({
+    where: { student_id: id },
+    data: { student_status: STUDENT_STATUS.ACTIVE },
+    include: {
+      student_responsibles: {
+        include: {
+          responsibles: true
+        }
+      }
+    }
+  });
+};
+
 module.exports = {
   findByEmail,
   findByCpf,
@@ -130,5 +144,6 @@ module.exports = {
   count,
   create,
   update,
-  softDelete
+  softDelete,
+  restore
 };

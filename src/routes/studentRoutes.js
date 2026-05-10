@@ -18,5 +18,6 @@ router.get('/listStudentById/:id', ADMIN_OR_TEACHER, studentController.getStuden
 router.post('/createStudent', ADMIN_ONLY, validateCreateStudent, studentController.createStudent);
 router.put('/updateStudentById/:id', ADMIN_ONLY, validateUpdateStudent, studentController.updateStudent);
 router.delete('/deleteStudentById/:id', ADMIN_ONLY, studentController.deleteStudent);
+router.post('/restoreStudentById/:id', ADMIN_ONLY, studentController.restoreStudent);
 
 module.exports = router;
