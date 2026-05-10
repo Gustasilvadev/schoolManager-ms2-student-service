@@ -195,7 +195,17 @@ paths:
           schema:
             type: integer
             enum: [0, 1, 2]
-          description: Filtro por status do aluno
+          description: |
+            Filtro fino por status. Quando informado, sobrepõe o default.
+            Sem este parâmetro, ADMIN recebe apenas registros ACTIVE+INACTIVE (deletados ocultos).
+        - name: includeDeleted
+          in: query
+          schema:
+            type: boolean
+            default: false
+          description: |
+            Quando `true`, inclui alunos com status DELETED (2) na listagem. Padrão `false`.
+            Ignorado quando `status` é informado explicitamente.
         - name: email
           in: query
           schema:
@@ -305,7 +315,9 @@ paths:
               schema:
                 $ref: '#/components/schemas/Student'
         '400':
-          description: E-mail ou CPF já existe, ou dados inválidos
+          description: |
+            E-mail ou CPF já existe, dados inválidos, ou registro está deletado
+            (status=2 — use `POST /students/restoreStudentById/{id}` para reativar).
         '404':
           description: Aluno não encontrado
         '401':
@@ -342,3 +354,46 @@ paths:
           description: Não autenticado
         '403':
           description: Acesso negado
+
+  /students/restoreStudentById/{id}:
+    post:
+      summary: Restaura um aluno deletado (apenas ADMIN)
+      description: |
+        Promove o status do aluno de DELETED (2) para ACTIVE (1). Endpoint dedicado
+        para reativação consciente — separa a intenção "editar dados" de
+        "ressuscitar registro" e impede reativação acidental via update.
+      tags:
+        - Students
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Aluno restaurado com sucesso
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Aluno restaurado com sucesso"
+                  student:
+                    $ref: '#/components/schemas/Student'
+        '400':
+          description: Aluno não está deletado (nada a restaurar)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '401':
+          description: Token não fornecido ou inválido
+        '403':
+          description: Acesso negado (requer papel ADMIN)
+        '404':
+          description: Aluno não encontrado

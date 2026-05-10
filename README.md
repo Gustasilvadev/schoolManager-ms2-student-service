@@ -45,11 +45,12 @@ Para mantermos o histórico limpo e rastreável, este projeto utiliza a especifi
 
 | Método | Endpoint                              | Descrição                          | Auth | Role             | Body |
 |--------|---------------------------------------|------------------------------------|------|------------------|------|
-| GET    | `/students/listStudents`              | Lista alunos (paginação + filtros) | ✅   | ADMIN            | — |
+| GET    | `/students/listStudents`              | Lista alunos (paginação + filtros). Default ADMIN: ACTIVE+INACTIVE. Use `?includeDeleted=true` ou `?status=N`. | ✅   | ADMIN            | — |
 | GET    | `/students/listStudentById/{id}`      | Busca aluno por ID                 | ✅   | ADMIN ou TEACHER | — |
 | POST   | `/students/createStudent`             | Cria novo aluno                    | ✅   | ADMIN            | `student_name`, `student_cpf`, `student_email`, `student_birthday`, `student_status?`, `responsibles?` |
-| PUT    | `/students/updateStudentById/{id}`    | Atualiza dados do aluno            | ✅   | ADMIN            | qualquer campo + `responsibles?` |
+| PUT    | `/students/updateStudentById/{id}`    | Atualiza dados do aluno (bloqueado se status=DELETED) | ✅   | ADMIN            | qualquer campo + `responsibles?` |
 | DELETE | `/students/deleteStudentById/{id}`    | Deleta aluno (soft, status=2)      | ✅   | ADMIN            | — |
+| POST   | `/students/restoreStudentById/{id}`   | Restaura aluno deletado (status: 2 → 1) | ✅   | ADMIN            | — |
 
 > **`listStudentById` é o único endpoint de leitura aberto a TEACHER**, usado por outros MS (ex.: MS4 ao matricular aluno em turma) via Token Propagation. CRUD completo continua restrito a ADMIN.
 
