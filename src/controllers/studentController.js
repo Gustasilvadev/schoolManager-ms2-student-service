@@ -116,6 +116,28 @@ const restoreStudent = async (req, res, next) => {
 };
 
 /**
+ * Upload da foto do aluno (ADMIN ou TEACHER). O middleware handlePhotoUpload já garantiu req.file.
+ */
+const uploadStudentPhoto = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    const updated = await studentService.uploadStudentPhoto(parseInt(id), req.file.buffer);
+    return res.status(HTTP_STATUS.OK).json(formatStudentResponse(updated));
+  } catch (error) {
+    if (error.message === MESSAGES.STUDENT_NOT_FOUND) {
+      return res.status(HTTP_STATUS.NOT_FOUND).json({ error: error.message });
+    }
+    if (error.message === MESSAGES.CANNOT_EDIT_DELETED) {
+      return res.status(HTTP_STATUS.BAD_REQUEST).json({ error: error.message });
+    }
+    if (error.message === MESSAGES.EXTERNAL_SERVICE_UNAVAILABLE) {
+      return res.status(HTTP_STATUS.SERVICE_UNAVAILABLE).json({ error: error.message });
+    }
+    next(error);
+  }
+};
+
+/**
  * Exclusão lógica do aluno
  */
 const deleteStudent = async (req, res, next) => {
@@ -137,5 +159,6 @@ module.exports = {
   getStudentById,
   updateStudent,
   deleteStudent,
-  restoreStudent
+  restoreStudent,
+  uploadStudentPhoto
 };

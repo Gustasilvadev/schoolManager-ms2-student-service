@@ -11,6 +11,7 @@ const formatStudentResponse = (student) => {
     student_cpf: student.student_cpf,
     student_email: student.student_email,
     student_status: student.student_status,
+    student_photo: student.student_photo,
     student_responsibles: student.student_responsibles?.map(sr => ({
       responsibles: sr.responsibles
     })) || []

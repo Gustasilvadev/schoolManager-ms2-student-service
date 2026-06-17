@@ -4,6 +4,9 @@ const responsibleRepo = require('../repositories/responsibleRepository');
 const studentResponsibleRepo = require('../repositories/studentResponsibleRepository');
 const { MESSAGES, STUDENT_STATUS, RESPONSIBLE_STATUS, ROLES } = require('../utils/constants');
 const { validateUniqueStudentEmail, validateUniqueStudentCpf, validateUniqueResponsibleEmail } = require('../utils/validators');
+const { uploadImageBuffer } = require('../utils/cloudinaryHelper');
+
+const CLOUDINARY_STUDENTS_FOLDER = 'schoolmanager/students';
 
 /**
  * Cria um novo aluno com seus responsáveis.
@@ -135,6 +138,32 @@ const deleteStudent = async (id) => {
   return await studentRepo.softDelete(id);
 };
 
+/**
+ * Faz upload da foto do aluno para o Cloudinary e persiste a URL.
+ * O upload externo ocorre ANTES da escrita no banco: se o Cloudinary falhar,
+ * nada é gravado e o erro vira 503 no controller.
+ */
+const uploadStudentPhoto = async (id, fileBuffer) => {
+  const student = await studentRepo.findById(id);
+  if (!student) throw new Error(MESSAGES.STUDENT_NOT_FOUND);
+  if (student.student_status === STUDENT_STATUS.DELETED) {
+    throw new Error(MESSAGES.CANNOT_EDIT_DELETED);
+  }
+
+  let result;
+  try {
+    result = await uploadImageBuffer(fileBuffer, {
+      folder: CLOUDINARY_STUDENTS_FOLDER,
+      publicId: id
+    });
+  } catch (err) {
+    console.error('[MS2] Falha no upload ao Cloudinary:', err.message);
+    throw new Error(MESSAGES.EXTERNAL_SERVICE_UNAVAILABLE);
+  }
+
+  return await studentRepo.update(id, { student_photo: result.secure_url });
+};
+
 const restoreStudent = async (id) => {
   const student = await studentRepo.findById(id);
   if (!student) throw new Error(MESSAGES.STUDENT_NOT_FOUND);
@@ -150,5 +179,6 @@ module.exports = {
   getStudentById,
   updateStudent,
   deleteStudent,
-  restoreStudent
+  restoreStudent,
+  uploadStudentPhoto
 };
