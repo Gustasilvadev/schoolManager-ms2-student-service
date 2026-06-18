@@ -51,8 +51,15 @@ Para mantermos o histórico limpo e rastreável, este projeto utiliza a especifi
 | PUT    | `/students/updateStudentById/{id}`    | Atualiza dados do aluno (bloqueado se status=DELETED) | ✅   | ADMIN            | qualquer campo + `responsibles?` |
 | DELETE | `/students/deleteStudentById/{id}`    | Deleta aluno (soft, status=2)      | ✅   | ADMIN            | — |
 | POST   | `/students/restoreStudentById/{id}`   | Restaura aluno deletado (status: 2 → 1) | ✅   | ADMIN            | — |
+| POST   | `/students/uploadPhotoById/{id}`      | Upload da foto do aluno              | ✅   | ADMIN ou TEACHER | `photo` (file, multipart) |
 
 > **`listStudentById` é o único endpoint de leitura aberto a TEACHER**, usado por outros MS (ex.: MS4 ao matricular aluno em turma) via Token Propagation. CRUD completo continua restrito a ADMIN.
+
+### Foto do aluno (`student_photo`)
+
+- O campo `student_photo` (URL pública no **Cloudinary**) é retornado no objeto do aluno (listagens e detalhe). Possui avatar padrão (DEFAULT) no banco.
+- Upload via `multipart/form-data`, campo **`photo`**. Limite **5 MB**; formatos **jpeg, jpg, png, webp**. A imagem vai ao Cloudinary direto da memória (sem disco) e a `secure_url` é persistida.
+- Permissão: **ADMIN ou TEACHER** (aluno não tem login). Erros: `413` (>5 MB), `400` (formato inválido / sem arquivo / aluno inativo status=2), `503` (Cloudinary indisponível — nada é gravado).
 
 ---
 
